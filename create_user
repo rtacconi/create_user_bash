@@ -13,7 +13,7 @@ create_user_in_host () {
   read main_group
   ssh ${ssh_user}@${ssh_host} "sudo useradd ${username} -s /bin/bash -m -d /home/${username} -g ${main_group}"
   printf "Enter user password: "
-  read password
+  read -s password
   ssh ${ssh_user}@${ssh_host} "sudo echo -e \"${password}\n${password}\" | sudo passwd ${username}"
   printf "Enter the user public key: "
   read pub_key
@@ -37,5 +37,5 @@ read hosts
 
 for host in "${hosts[@]}"
 do :
-	create_user_in_host $host
+  create_user_in_host $host
 done
