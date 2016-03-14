@@ -1,0 +1,42 @@
+#! /bin/bash
+
+set -x
+set -e
+
+create_user_in_host () {
+  printf "Enter ssh user: "
+  read ssh_user
+  ssh_host=$1
+  printf "Enter user name: "
+  read username
+  printf "Enter main group: "
+  read main_group
+  ssh ${ssh_user}@${ssh_host} "sudo useradd ${username} -s /bin/bash -m -d /home/${username} -g ${main_group}"
+  printf "Enter user password: "
+  read password
+  ssh ${ssh_user}@${ssh_host} "sudo echo -e \"${password}\n${password}\" | sudo passwd ${username}"
+  printf "Enter the user public key: "
+  read pub_key
+
+  if [ -d /home/${username}/.ssh ]; then
+    # let 's start from a fresh directory
+    ssh ${ssh_user}@${ssh_host} "sudo rm -rf /home/${username}/.ssh"
+  fi
+
+  # create directory and file and add the key and set owner and permissions
+  ssh ${ssh_user}@${ssh_host} "sudo mkdir /home/${username}/.ssh"
+  ssh ${ssh_user}@${ssh_host} "sudo chown ${username} /home/${username}/.ssh"
+  ssh ${ssh_user}@${ssh_host} "sudo chmod 700 /home/${username}/.ssh"
+  ssh ${ssh_user}@${ssh_host} "sudo echo ${pub_key} > /home/${username}/.ssh/authorized_keys"
+  ssh ${ssh_user}@${ssh_host} "sudo chown ${username} /home/${username}/.ssh/authorized_keys"
+  ssh ${ssh_user}@${ssh_host} "sudo chmod 600 /home/${username}/.ssh/.ssh/authorized_keys"
+}
+
+printf 'Enter the list of hosts separated by a space: '
+read hosts
+
+for host in "${hosts[@]}"
+do
+  :
+	create_user_in_host $host
+done
